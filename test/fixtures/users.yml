@@ -1,0 +1,12 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+# Fixtures are inserted straight into the database.
+# They are not run through validations.
+# Fixtures are only checking the database-level constraints.
+one:
+  name: MyString
+  email: MyString1
+
+two:
+  name: MyString
+  email: MyString2
