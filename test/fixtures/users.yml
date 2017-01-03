@@ -3,10 +3,7 @@
 # Fixtures are inserted straight into the database.
 # They are not run through validations.
 # Fixtures are only checking the database-level constraints.
-one:
-  name: MyString
-  email: MyString1
-
-two:
-  name: MyString
-  email: MyString2
+michael:
+  name: Michael Example
+  email: michael@example.com
+  password_digest: <%= User.digest("password") %>

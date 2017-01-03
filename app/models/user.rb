@@ -7,4 +7,12 @@ class User < ApplicationRecord
 	has_secure_password
 
 	validates :password, presence:true, length: {minimum: 6}
+
+	# Used only in testing the login
+	def User.digest(raw_password)
+		cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST :
+																									BCrypt::Engine.cost
+		BCrypt::Password.create(raw_password, cost: cost)
+	end
+
 end
