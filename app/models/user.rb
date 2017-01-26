@@ -44,11 +44,11 @@ class User < ApplicationRecord
 	private
 		
 		def downcase_email
-			email.downcase!
+			self.email.downcase!
 		end
 
 		def create_activation_digest
-			activation_token = User.new_token
-			activation_digest = User.digest(activation_token)
+			self.activation_token = User.new_token
+			self.activation_digest = User.digest(activation_token)
 		end
 end
