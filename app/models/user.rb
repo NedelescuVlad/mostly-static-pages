@@ -13,6 +13,10 @@ class User < ApplicationRecord
 
 	class << self
 
+		def activated_and_paginated_users(current_page)
+			where(activated: true).paginate(page: current_page)
+		end
+
 		# Returns the hash digest of a given string
 		def digest(string)
 			cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST :
@@ -32,13 +36,26 @@ class User < ApplicationRecord
 		update_attribute(:remember_digest, User.digest(remember_token))
 	end
 
-	def authenticated?(remember_token)
-		return false if remember_token.nil?
-		BCrypt::Password.new(remember_digest).is_password?(remember_token)
+	# Checks whether the database stored digest matches the one generated from a given token.
+	# Applied to password, remember and activation digests.
+	def authenticated?(attribute, token)
+		digest = send("#{attribute}_digest")
+		return false if token.nil?
+		BCrypt::Password.new(digest).is_password?(token)
 	end
 
 	def forget
 		update_attribute(:remember_token, nil)
+	end
+
+	# Activates an account
+	def activate
+		update_columns(activated: true, activated_at: Time.zone.now)
+	end
+
+	# Sends account activation email
+	def send_activation_email
+		UserMailer.send_activation_email(self).deliver_now
 	end
 
 	private
@@ -51,4 +68,5 @@ class User < ApplicationRecord
 			self.activation_token = User.new_token
 			self.activation_digest = User.digest(activation_token)
 		end
+
 end
