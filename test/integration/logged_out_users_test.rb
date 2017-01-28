@@ -52,7 +52,7 @@ class StaticPagesControllerTest < ActionDispatch::IntegrationTest
 
 	test "should redirect the update user action" do
 		patch user_path(@user), params: {user: {name: "Updated Name", 
-																									email: "updated@email.com"}}
+																						email: "updated@email.com"}}
 		assert_redirected_to login_url
 		assert_not flash.empty?
 	end
