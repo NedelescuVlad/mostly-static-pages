@@ -1,15 +1,16 @@
 class User < ApplicationRecord
-  attr_accessor :remember_token, :activation_token, :reset_token
-
-  before_save :downcase_email
-  before_create :create_activation_digest
+  has_many :microposts, dependent: :destroy
 
   validates :name, presence: true, length: {maximum: 50}
   VALID_EMAIL_REGEX = /\A([\w+\-].?)+@[a-z\d\-]+(\.[a-z]+)*\.[a-z]+\z/i
   validates :email, presence: true, length: {maximum: 255}, uniqueness: {case_sensitive: false}, format: {with: VALID_EMAIL_REGEX}
-
   has_secure_password
   validates :password, presence:true, length: {minimum: 6}
+
+  before_save :downcase_email
+  before_create :create_activation_digest
+
+  attr_accessor :remember_token, :activation_token, :reset_token
 
   class << self
 
@@ -17,17 +18,22 @@ class User < ApplicationRecord
       where(activated: true).paginate(page: current_page)
     end
 
-    # Returns the hash digest of a given string
+    # Returns the hash digest of a given string.
     def digest(string)
       cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST :
                                                     BCrypt::Engine.cost
       BCrypt::Password.create(string, cost: cost)
     end
 
-    # Generates a new random token
+    # Generates a new random token.
     def new_token
       SecureRandom.urlsafe_base64
     end
+  end
+
+  # Returns a user's micropost feed.
+  def feed
+    microposts
   end
 
   # Stores a user in the database for persistent sessions.
@@ -39,8 +45,8 @@ class User < ApplicationRecord
   # Checks whether the database stored digest matches the one generated from a given token.
   # Applied to password, remember and activation digests.
   def authenticated?(attribute, token)
-    digest = send("#{attribute}_digest")
     return false if token.nil?
+    digest = send("#{attribute}_digest")
     BCrypt::Password.new(digest).is_password?(token)
   end
 
@@ -48,12 +54,12 @@ class User < ApplicationRecord
     update_attribute(:remember_token, nil)
   end
 
-  # Activates an account
+  # Activates an account.
   def activate
     update_columns(activated: true, activated_at: Time.zone.now)
   end
 
-  # Sends account activation email
+  # Sends account activation email.
   def send_activation_email
     UserMailer.send_activation_email(self).deliver_now
   end
@@ -64,7 +70,7 @@ class User < ApplicationRecord
     update_columns(reset_digest: User.digest(reset_token), reset_sent_at: Time.zone.now)
   end
 
-  # Returns true if a password reset has expired
+  # Returns true if a password reset has expired.
   def password_reset_expired?
     reset_sent_at < 2.hours.ago
   end
