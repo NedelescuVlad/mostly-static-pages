@@ -2,7 +2,7 @@ require 'test_helper'
 
 class UserTest < ActiveSupport::TestCase
 	def setup
-		@user = User.new name: "Vlad Nedelescu", email: "vlad@example.com", password: "itsasecret", password_confirmation: "itsasecret"
+		@user = User.create name: "Vlad Nedelescu", email: "vlad@example.com", password: "itsasecret", password_confirmation: "itsasecret"
 	end
 	
 	test "authenticated? should return false for a user with a nil digest" do
@@ -83,4 +83,33 @@ class UserTest < ActiveSupport::TestCase
 			assert_not @user.valid?, "#{@invalid_email.inspect} should be invalid"
 		end
 	end
+
+  test "should follow and unfollow user" do
+    michael = users(:michael)
+    archer = users(:archer)
+    assert_not michael.following?(archer)
+    michael.follow(archer)
+    assert michael.following?(archer)
+    assert archer.followers.include?(michael)
+    michael.unfollow(archer)
+    assert_not michael.following?(archer)
+  end
+
+  test "feed should have the right posts" do
+    michael = users(:michael)
+    archer = users(:archer)
+    lana = users(:lana)
+    # Posts from followed users
+    lana.microposts.each do |post_following|
+      assert michael.feed.include?(post_following)
+    end
+    # Posts from self
+    michael.microposts.each do |post_self|
+      assert michael.feed.include?(post_self)
+    end
+    # Posts from unfollowed users
+    archer.microposts.each do |post_unfollowed|
+      assert_not michael.feed.include?(post_unfollowed)
+    end
+  end
 end
